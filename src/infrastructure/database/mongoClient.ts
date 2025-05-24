@@ -16,6 +16,7 @@ export const connectToDatabase = async (): Promise<MongoClient> => {
             client = new MongoClient(uri);
         } else {
             // Use the real MongoDB URI for other environments
+            console.log('Using real MongoDB URI:', config.mongoURI);
             client = new MongoClient(config.mongoURI);
         }
         await client.connect();

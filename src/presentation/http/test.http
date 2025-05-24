@@ -1,7 +1,8 @@
-### create a todo
-@todoId = {{randomInt 1 1000}}
+@host = http://localhost:3000
+@todoId = 6831a83b4017368903225410
 
-POST http://localhost:4000/todos
+### create a todo
+POST {{host}}/todos
 Content-Type: application/json
 
 {
@@ -9,13 +10,13 @@ Content-Type: application/json
 }
 
 ### get all todos
-GET http://localhost:4000/todos
+GET {{host}}/todos
 Content-Type: application/json
 
 {}
 
 ### update a todo
-PUT http://localhost:4000/todos/{{todoId}}
+PUT {{host}}/todos/{{todoId}}
 Content-Type: application/json
 
 {
@@ -23,9 +24,9 @@ Content-Type: application/json
 }
 
 ### delete a todo
-DELETE http://localhost:4000/todos/{{todoId}}
+DELETE {{host}}/todos/{{todoId}}
 Content-Type: application/json
 
 ### health
-GET http://localhost:4000/health
+GET {{host}}/health
 Content-Type: application/json
