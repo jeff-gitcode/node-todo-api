@@ -1,3 +1,5 @@
+import { sendMessage } from "infrastructure/kafka/kafkaProducer";
+
 export const deleteTodo = async (id: string, todoRepository: any): Promise<void> => {
-    await todoRepository.deleteTodo(id);
+    await sendMessage('todo-events', { action: 'delete', data: { id } });
 };

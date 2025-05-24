@@ -1,3 +1,4 @@
+import { Todo } from 'domain/entities/todo';
 import { MongoClient, ObjectId } from 'mongodb';
 
 class TodoRepository {
@@ -13,10 +14,12 @@ class TodoRepository {
         return this.client.db(this.databaseName);
     }
 
-    async addTodo(title: string): Promise<any> {
-        const todo = { title };
-        const result = await this.db.collection('todos').insertOne(todo);
-        return { id: result.insertedId, ...todo };
+    async addTodo(todo: Todo): Promise<Todo> {
+        const result = await this.db.collection('todos').insertOne({
+            _id: new ObjectId(todo.id),
+            title: todo.title,
+        });
+        return todo;
     }
 
     async fetchTodos(): Promise<any[]> {

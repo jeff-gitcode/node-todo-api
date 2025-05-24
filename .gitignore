@@ -45,3 +45,5 @@ Thumbs.db
 # Test output
 *.test.js
 *.test.ts
+
+kafka-data/

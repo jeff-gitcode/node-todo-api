@@ -2,6 +2,8 @@ import express from 'express';
 import { connectToDatabase } from '@infrastructure/database/mongoClient';
 import todoRoutes from '@presentation/routes/todoRoutes';
 import { config } from '@config/index';
+import { connectConsumer } from '@infrastructure/kafka/kafkaConsumer';
+import { connectProducer } from '@infrastructure/kafka/kafkaProducer';
 
 const app = express();
 const PORT = config.port;
@@ -13,6 +15,12 @@ const startServer = async () => {
         // Connect to the database
         await connectToDatabase();
         console.log('Database connected successfully.');
+
+        // Connect Kafka producer and consumer
+        await connectProducer();
+        console.log('Kafka producer connected.');
+        await connectConsumer();
+        console.log('Kafka consumer connected.');
 
         // Register routes only after the database connection is established
         app.use('/', todoRoutes());
