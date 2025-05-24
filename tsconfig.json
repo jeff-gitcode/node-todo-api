@@ -17,6 +17,9 @@
         "domain/*",
         "infrastructure/*"
       ],
+      "@src/*": [
+        "*"
+      ],
       "@application/*": [
         "application/*"
       ],

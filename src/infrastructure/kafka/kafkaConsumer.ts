@@ -1,6 +1,7 @@
 import { Kafka } from 'kafkajs';
 import TodoRepository from '@infrastructure/repositories/todoRepository';
 import { getMongoClient } from '@infrastructure/database/mongoClient';
+import { kafkaConsumerMiddleware } from './middleware';
 
 const kafka = new Kafka({
     clientId: 'todo-api',
@@ -21,15 +22,16 @@ export const connectConsumer = async () => {
             const event = JSON.parse(message.value?.toString() || '{}');
             const { action, data } = event;
 
-            console.log(`Received message: ${JSON.stringify(event)}`);
+            await kafkaConsumerMiddleware(event, async (event: any) => {
 
-            if (action === 'create') {
-                await todoRepository.addTodo(data);
-            } else if (action === 'update') {
-                await todoRepository.updateTodo(data.id, data.title);
-            } else if (action === 'delete') {
-                await todoRepository.deleteTodo(data.id);
-            }
+                if (action === 'create') {
+                    await todoRepository.addTodo(data);
+                } else if (action === 'update') {
+                    await todoRepository.updateTodo(data.id, data.title);
+                } else if (action === 'delete') {
+                    await todoRepository.deleteTodo(data.id);
+                }
+            });
         },
     });
 };

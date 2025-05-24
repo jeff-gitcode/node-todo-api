@@ -1,4 +1,5 @@
 import { Kafka } from 'kafkajs';
+import { kafkaProducerMiddleware } from './middleware';
 
 const kafka = new Kafka({
     clientId: 'todo-api',
@@ -11,10 +12,12 @@ export const connectProducer = async () => {
     await producer.connect();
 };
 
+// Wrapped sendMessage function with middleware
 export const sendMessage = async (topic: string, message: any) => {
-    console.log(`Sending message to topic ${topic}: ${JSON.stringify(message)}`);
-    await producer.send({
-        topic,
-        messages: [{ value: JSON.stringify(message) }],
+    await kafkaProducerMiddleware(topic, message, async (topic: string, message: any) => {
+        await producer.send({
+            topic,
+            messages: [{ value: JSON.stringify(message) }],
+        });
     });
 };

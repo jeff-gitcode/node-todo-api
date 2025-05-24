@@ -1,22 +1,23 @@
 import { MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { config } from '@config/index';
+import logger from '@src/logger';
 
 let client: MongoClient | null = null;
 let memoryServer: MongoMemoryServer | null = null;
 
 export const connectToDatabase = async (): Promise<MongoClient> => {
     if (!client) {
-        console.log('Connecting to MongoDB...', process.env.NODE_ENV);
+        logger.info('Connecting to MongoDB...', process.env.NODE_ENV);
         if (process.env.NODE_ENV === 'test') {
             // Use MongoMemoryServer for test environment
             memoryServer = await MongoMemoryServer.create();
             const uri = memoryServer.getUri();
-            console.log('Using MongoMemoryServer URI:', uri);
+            logger.info('Using MongoMemoryServer URI:', uri);
             client = new MongoClient(uri);
         } else {
             // Use the real MongoDB URI for other environments
-            console.log('Using real MongoDB URI:', config.mongoURI);
+            logger.info('Using real MongoDB URI:', config.mongoURI);
             client = new MongoClient(config.mongoURI);
         }
         await client.connect();
