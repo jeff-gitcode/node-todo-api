@@ -6,12 +6,24 @@ This project is a simple Todo API implemented using Node.js, Express, and TypeSc
 
 ```
 todo-api
+├── .env
+├── .env.development
+├── .env.production
+├── .env.test
+├── jest.config.ts
+├── package.json
+├── tsconfig.json
+├── tsconfig.paths.json
 ├── src
 │   ├── application
-│   │   ├── use-cases
-│   │   │   └── todo
-│   │   │       ├── createTodo.ts
-│   │   │       └── getTodos.ts
+│   │   └── use-cases
+│   │       └── todo
+│   │           ├── createTodo.ts
+│   │           ├── deleteTodo.ts
+│   │           ├── getTodos.ts
+│   │           └── updateTodo.ts
+│   ├── config
+│   │   └── index.ts
 │   ├── domain
 │   │   └── entities
 │   │       └── todo.ts
@@ -20,71 +32,67 @@ todo-api
 │   │   │   └── mongoClient.ts
 │   │   └── repositories
 │   │       └── todoRepository.ts
-│   ├── interfaces
+│   ├── presentation
 │   │   ├── controllers
 │   │   │   └── todoController.ts
-│   │   ├── routes
-│   │   │   └── todoRoutes.ts
-│   │   └── http
-│   │       └── test.http
-│   ├── config
-│   │   └── index.ts
+│   │   ├── http
+│   │   │   └── test.http
+│   │   └── routes
+│   │       └── todoRoutes.ts
 │   └── server.ts
 ├── tests
 │   ├── integration
 │   │   └── todoIntegration.test.ts
 │   └── unit
-│       ├── use-cases
-│       │   └── createTodo.test.ts
-│       └── repositories
-│           └── todoRepository.test.ts
-├── package.json
-├── tsconfig.json
-├── tsconfig.paths.json
-└── README.md
+│       └── ...
 ```
 
 ## Features
 
 - Create a new todo item
 - Retrieve all todo items
-- Clean architecture structure for maintainability and scalability
+- Update a todo item
+- Delete a todo item
+- Health check endpoint
 
 ## Setup Instructions
 
 1. Clone the repository:
-   ```
+   ```bash
    git clone <repository-url>
    cd todo-api
    ```
 
 2. Install dependencies:
-   ```
+   ```bash
    npm install
    ```
 
-3. Set up your MongoDB connection in `src/config/index.ts`.
+3. Configure environment variables:
+   - Create `.env` files for different environments (`.env.development`, `.env.test`, `.env.production`).
+   - Example `.env.development`:
+     ```
+     MONGO_URI=mongodb://localhost:27017/todo-api-dev
+     PORT=3000
+     ```
 
 4. Start the server:
-   ```
-   npm run start
+   ```bash
+   npm run dev
    ```
 
 ## Usage
 
 - To create a todo, send a POST request to `/todos` with a JSON body containing the `title`.
 - To fetch all todos, send a GET request to `/todos`.
+- To update a todo, send a PUT request to `/todos/:id` with a JSON body containing the updated `title`.
+- To delete a todo, send a DELETE request to `/todos/:id`.
 
 ## Testing
 
-- Unit tests can be run using:
-  ```
-  npm run test:unit
-  ```
-
-- Integration tests can be run using:
-  ```
-  npm run test:integration
+- Run unit and integration tests:
+  ```bash
+  npm test
   ```
 
 ## License

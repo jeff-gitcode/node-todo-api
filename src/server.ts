@@ -1,6 +1,6 @@
 import express from 'express';
 import { connectToDatabase } from '@infrastructure/database/mongoClient';
-import todoRoutes from '@interfaces/routes/todoRoutes';
+import todoRoutes from '@presentation/routes/todoRoutes';
 import { config } from '@config/index';
 
 const app = express();

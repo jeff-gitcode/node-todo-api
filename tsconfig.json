@@ -26,8 +26,8 @@
       "@infrastructure/*": [
         "infrastructure/*"
       ],
-      "@interfaces/*": [
-        "interfaces/*"
+      "@presentation/*": [
+        "presentation/*"
       ],
       "@config/*": [
         "config/*"

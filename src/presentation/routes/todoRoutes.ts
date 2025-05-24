@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { TodoController } from '@interfaces/controllers/todoController';
+import { TodoController } from '@presentation/controllers/todoController';
 import { getMongoClient } from '@infrastructure/database/mongoClient';
 import TodoRepository from '@infrastructure/repositories/todoRepository';
 
