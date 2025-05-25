@@ -8,7 +8,7 @@ services:
       MONGO_INITDB_ROOT_USERNAME: admin
       MONGO_INITDB_ROOT_PASSWORD: admin
     volumes:
-      - mongodb_data:/data/db
+      - ./mongodb_data:/data/db
   kafka:
     image: bitnami/kafka:3.5.1
     container_name: kafka
@@ -28,7 +28,9 @@ services:
       KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
       ALLOW_PLAINTEXT_LISTENER: "yes"
     volumes:
-      - ./kafka-data:/bitnami/kafka/data
+      - ./kafka_data:/bitnami/kafka/data
 volumes:
   mongodb_data:
+    driver: local
+  kafka_data:
     driver: local

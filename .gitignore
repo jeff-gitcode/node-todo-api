@@ -46,4 +46,5 @@ Thumbs.db
 *.test.js
 *.test.ts
 
-kafka-data/
+kafka_data/
+mongodb_data/

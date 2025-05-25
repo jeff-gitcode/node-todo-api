@@ -2,6 +2,39 @@
 
 This project is a simple Todo API implemented using Node.js, Express, and TypeScript, following the principles of Clean Architecture. It uses MongoDB as the database and the native MongoClient to connect to it.
 
+
+## System Architecture
+
+This project follows the Clean Architecture pattern, which ensures separation of concerns and maintainability. The application is divided into layers with dependencies pointing inward, ensuring that inner layers don't depend on outer layers.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant Routes
+    participant Controller
+    participant UseCase
+    participant KafkaProducer
+    participant KafkaConsumer
+    participant Repository
+    participant MongoDB
+
+    Client->>Routes: POST /todos (title: "New Todo")
+    Routes->>Controller: create(req, res)
+    Controller->>UseCase: createTodo({title})
+    UseCase->>UseCase: Generate ObjectId
+    UseCase->>UseCase: Create Todo object
+    UseCase->>KafkaProducer: sendMessage("todo-events", {action: "create", data: todo})
+    KafkaProducer-->>UseCase: Success
+    UseCase-->>Controller: Return Todo object
+    Controller-->>Client: HTTP 201 (Created)
+
+    KafkaProducer->>KafkaConsumer: Message published
+    KafkaConsumer->>Repository: addTodo(todo)
+    Repository->>MongoDB: insertOne(todo)
+    MongoDB-->>Repository: Insertion success
+    Repository-->>KafkaConsumer: Success
+```
+
 ## Project Structure
 
 ```
