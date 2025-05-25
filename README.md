@@ -14,6 +14,7 @@ sequenceDiagram
     participant Controller
     participant UseCase
     participant KafkaProducer
+    participant KafkaBroker
     participant KafkaConsumer
     participant Repository
     participant MongoDB
@@ -24,15 +25,18 @@ sequenceDiagram
     UseCase->>UseCase: Generate ObjectId
     UseCase->>UseCase: Create Todo object
     UseCase->>KafkaProducer: sendMessage("todo-events", {action: "create", data: todo})
+    KafkaProducer->>KafkaBroker: Publish message to "todo-events" topic
+    KafkaBroker-->>KafkaProducer: Acknowledge message
     KafkaProducer-->>UseCase: Success
     UseCase-->>Controller: Return Todo object
     Controller-->>Client: HTTP 201 (Created)
 
-    KafkaProducer->>KafkaConsumer: Message published
+    KafkaBroker->>KafkaConsumer: Deliver message from "todo-events" topic
     KafkaConsumer->>Repository: addTodo(todo)
     Repository->>MongoDB: insertOne(todo)
     MongoDB-->>Repository: Insertion success
     Repository-->>KafkaConsumer: Success
+    KafkaConsumer-->>KafkaBroker: Commit offset
 ```
 
 ## Project Structure
