@@ -1,4 +1,4 @@
-# Todo API
+# Clean Architecture Node Todo API
 
 This project is a simple Todo API implemented using Node.js, Express, and TypeScript, following the principles of Clean Architecture. It uses MongoDB as the database and the native MongoClient to connect to it.
 
