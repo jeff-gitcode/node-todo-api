@@ -14,10 +14,10 @@ export const connectProducer = async () => {
 
 // Wrapped sendMessage function with middleware
 export const sendMessage = async (topic: string, message: any) => {
-    await kafkaProducerMiddleware(topic, message, async (topic: string, message: any) => {
-        await producer.send({
-            topic,
-            messages: [{ value: JSON.stringify(message) }],
-        });
+    // await kafkaProducerMiddleware(topic, message, async (topic: string, message: any) => {
+    await producer.send({
+        topic,
+        messages: [{ value: JSON.stringify(message) }],
     });
+    // });
 };

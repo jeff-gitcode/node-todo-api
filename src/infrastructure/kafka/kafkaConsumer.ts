@@ -22,16 +22,16 @@ export const connectConsumer = async () => {
             const event = JSON.parse(message.value?.toString() || '{}');
             const { action, data } = event;
 
-            await kafkaConsumerMiddleware(event, async (event: any) => {
+            // await kafkaConsumerMiddleware(event, async (event: any) => {
 
-                if (action === 'create') {
-                    await todoRepository.addTodo(data);
-                } else if (action === 'update') {
-                    await todoRepository.updateTodo(data.id, data.title);
-                } else if (action === 'delete') {
-                    await todoRepository.deleteTodo(data.id);
-                }
-            });
-        },
+            if (action === 'create') {
+                await todoRepository.addTodo(data);
+            } else if (action === 'update') {
+                await todoRepository.updateTodo(data.id, data.title);
+            } else if (action === 'delete') {
+                await todoRepository.deleteTodo(data.id);
+            }
+            // });
+        }
     });
 };

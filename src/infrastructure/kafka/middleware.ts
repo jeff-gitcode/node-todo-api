@@ -1,4 +1,4 @@
-import logger from "@src/logger";
+import logger from "../../logger";
 
 export const kafkaProducerMiddleware = async (topic: string, message: any, next: Function) => {
     logger.info(`Middleware: Preparing to send message to topic "${topic}": ${JSON.stringify(message)}`);

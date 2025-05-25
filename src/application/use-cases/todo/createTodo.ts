@@ -1,10 +1,9 @@
 import { Todo } from '@domain/entities/todo';
-import TodoRepository from '@infrastructure/repositories/todoRepository';
-import { sendMessage } from 'infrastructure/kafka/kafkaProducer';
-import logger from '@src/logger';
+import { sendMessage } from '@infrastructure/kafka/kafkaProducer';
+import logger from '../../../logger';
 import { ObjectId } from 'mongodb';
 
-export const createTodo = async (todoData: { title: string }, todoRepository: TodoRepository): Promise<Todo> => {
+export const createTodo = async (todoData: { title: string }): Promise<Todo> => {
     if (!todoData.title) {
         throw new Error('Title is required');
     }

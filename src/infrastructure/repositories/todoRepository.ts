@@ -1,9 +1,9 @@
-import { Todo } from 'domain/entities/todo';
+import { Todo } from '@domain/entities/todo';
 import { MongoClient, ObjectId } from 'mongodb';
 
 class TodoRepository {
-    private client: MongoClient;
-    private databaseName: string;
+    private readonly client: MongoClient;
+    private readonly databaseName: string;
 
     constructor(client: MongoClient, databaseName: string) {
         this.client = client;
@@ -15,11 +15,17 @@ class TodoRepository {
     }
 
     async addTodo(todo: Todo): Promise<Todo> {
-        const result = await this.db.collection('todos').insertOne({
-            _id: new ObjectId(todo.id),
-            title: todo.title,
-        });
-        return todo;
+        try {
+            const result = await this.db.collection('todos').insertOne({
+                _id: new ObjectId(todo.id),
+                title: todo.title,
+            });
+            return todo;
+
+        } catch (error) {
+            console.error('Error adding todo:', error);
+            throw new Error('Failed to add todo');
+        }
     }
 
     async fetchTodos(): Promise<any[]> {

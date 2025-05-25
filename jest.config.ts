@@ -3,13 +3,13 @@ import type { Config } from 'jest';
 const config: Config = {
     preset: 'ts-jest',
     testEnvironment: 'node',
-    testMatch: [
-        '**/__tests__/**/*.[jt]s?(x)',
-        '**/?(*.)+(spec|test).[tj]s?(x)',
-        '**/tests/integration/**/*.test.ts' // Include integration tests
-    ],
+    // testMatch: [
+    //     '**/__tests__/**/*.[jt]s?(x)',
+    //     '**/?(*.)+(spec|test).[tj]s?(x)',
+    //     '**/tests/integration/**/*.test.ts' // Include integration tests
+    // ],
     moduleNameMapper: {
-        '^@/(.*)$': '<rootDir>/src/$1',
+        '^@src/(.*)$': '<rootDir>/src/$1',
         '^@application/(.*)$': '<rootDir>/src/application/$1',
         '^@domain/(.*)$': '<rootDir>/src/domain/$1',
         '^@infrastructure/(.*)$': '<rootDir>/src/infrastructure/$1',

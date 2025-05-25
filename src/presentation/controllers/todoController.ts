@@ -1,7 +1,10 @@
 import TodoRepository from '@infrastructure/repositories/todoRepository';
+import { createTodo } from '@application/use-cases/todo/createTodo';
+import { deleteTodo } from '@application/use-cases/todo/deleteTodo';
+import { updateTodo } from '@application/use-cases/todo/updateTodo';
 
 export class TodoController {
-    private todoRepository: TodoRepository;
+    private readonly todoRepository: TodoRepository;
 
     constructor(todoRepository: TodoRepository) {
         this.todoRepository = todoRepository;
@@ -10,7 +13,7 @@ export class TodoController {
     public async create(req: any, res: any): Promise<void> {
         try {
             const { title } = req.body;
-            const todo = await this.todoRepository.addTodo(title);
+            const todo = await createTodo({ title });
             res.status(201).json(todo);
         } catch (error) {
             if (error instanceof Error) {
@@ -37,7 +40,7 @@ export class TodoController {
     public async delete(req: any, res: any): Promise<void> {
         try {
             const { id } = req.params;
-            await this.todoRepository.deleteTodo(id);
+            await deleteTodo(id);
             res.status(204).send();
         } catch (error) {
             if (error instanceof Error) {
@@ -52,7 +55,7 @@ export class TodoController {
         try {
             const { id } = req.params;
             const { title } = req.body;
-            const updatedTodo = await this.todoRepository.updateTodo(id, title);
+            const updatedTodo = await updateTodo(id, title);
             res.status(200).json(updatedTodo);
         } catch (error) {
             if (error instanceof Error) {

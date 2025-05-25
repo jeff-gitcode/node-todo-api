@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { config } from '@config/index';
-import logger from '@src/logger';
+import logger from '../../logger';
 
 let client: MongoClient | null = null;
 let memoryServer: MongoMemoryServer | null = null;

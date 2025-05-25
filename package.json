@@ -10,6 +10,7 @@
     "build": "tsc"
   },
   "dependencies": {
+    "@testcontainers/kafka": "^10.28.0",
     "dotenv": "^16.5.0",
     "express": "^4.17.1",
     "kafkajs": "^2.2.4",

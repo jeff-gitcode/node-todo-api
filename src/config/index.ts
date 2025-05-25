@@ -1,5 +1,5 @@
 import dotenv from 'dotenv';
-import logger from '@src/logger';
+import logger from '../logger';
 
 // Load the appropriate .env file based on NODE_ENV
 const envFile = `.env.${process.env.NODE_ENV || 'development'}`;

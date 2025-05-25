@@ -48,3 +48,6 @@ const startServer = async () => {
 
 // Start the server
 startServer();
+
+// Export the app for testing
+export { app };
