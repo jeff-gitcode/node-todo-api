@@ -2,6 +2,8 @@
 
 This project is a simple Todo API implemented using Node.js, Express, and TypeScript, following the principles of Clean Architecture. It uses MongoDB as the database and the native MongoClient to connect to it.
 
+## Node Todo Api Demo
+![Node Todo Api Demo](doc/node-todo-api-demo.gif)
 
 ## System Architecture
 
@@ -114,9 +116,30 @@ todo-api
      ```
 
 4. Start the server:
-   ```bash
-   npm run dev
-   ```
+   - Ensure Docker is running on your machine.
+   - Start the required services (MongoDB and Kafka) using Docker Compose:
+     ```bash
+     docker-compose up -d
+     ```
+   - Verify that the services are running:
+     ```bash
+     docker-compose ps
+     ```
+   - Verify Kafka & MongoDB is running:
+     ```bash
+     docker logs kafka
+     docker exec -it mongodb mongo
+     ```  
+   - Start the server in development mode:
+     ```bash
+     npm run dev
+     ```
+   - When stop docker and clean cache
+     ```bash
+     docker-compose down -v
+     rimraf ./kafka_data/
+     rimraf ./mongodb_data/
+     ```
 
 ## Usage
 

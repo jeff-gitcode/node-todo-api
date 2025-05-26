@@ -29,6 +29,7 @@ const startServer = async () => {
         // logger.info('Database connected successfully.');
         await registerInfrastructureService();
         logger.info('Dependencies bootstrapped successfully.');
+
         // Connect Kafka producer and consumer
         await connectProducer();
         logger.info('Kafka producer connected.');
