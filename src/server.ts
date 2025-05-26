@@ -1,12 +1,12 @@
 import express from 'express';
 import morgan from 'morgan';
 import logger from './logger'; // Import the logger
-import { connectToDatabase } from '@infrastructure/database/mongoClient';
 import todoRoutes from '@presentation/routes/todoRoutes';
 import { config } from '@config/index';
-import { connectConsumer } from '@infrastructure/kafka/kafkaConsumer';
-import { connectProducer } from '@infrastructure/kafka/kafkaProducer';
-import { registerInfrastructureService } from './infrastructure/di';
+import { KafkaConsumer } from '@infrastructure/kafka/kafkaConsumer';
+import { KafkaProducer } from '@infrastructure/kafka/kafkaProducer';
+import { registerInfrastructureService } from '@infrastructure/di';
+import { container } from './container';
 
 const app = express();
 const PORT = config.port;
@@ -31,9 +31,17 @@ const startServer = async () => {
         logger.info('Dependencies bootstrapped successfully.');
 
         // Connect Kafka producer and consumer
-        await connectProducer();
+        // Resolve KafkaProducer and KafkaConsumer
+        const kafkaProducer = container.get<KafkaProducer>('KafkaProducer');
+        const kafkaConsumer = container.get<KafkaConsumer>('KafkaConsumer');
+
+        // Connect Kafka producer and consumer
+        await kafkaProducer.connect();
         logger.info('Kafka producer connected.');
-        await connectConsumer();
+
+        await kafkaConsumer.connect();
+        await kafkaConsumer.subscribe('todo-events');
+        await kafkaConsumer.run();
         logger.info('Kafka consumer connected.');
 
         // Register routes only after the database connection is established

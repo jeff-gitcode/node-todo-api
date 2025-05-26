@@ -1,9 +1,13 @@
 import { createTodo } from '@application/use-cases/todo/createTodo';
-import { sendMessage } from '@infrastructure/kafka/kafkaProducer';
+import { KafkaProducer } from '@infrastructure/kafka/kafkaProducer';
+import { container } from '@src/container'; // Import the DI container
 import logger from '../../../logger';
+import { Kafka } from 'kafkajs';
 
 jest.mock('@infrastructure/kafka/kafkaProducer', () => ({
-    sendMessage: jest.fn(),
+    KafkaProducer: jest.fn().mockImplementation(() => ({
+        sendMessage: jest.fn(),
+    })),
 }));
 
 jest.mock('../../../logger', () => ({
@@ -11,11 +15,32 @@ jest.mock('../../../logger', () => ({
     error: jest.fn(),
 }));
 
+jest.mock('@src/container', () => ({
+    container: {
+        get: jest.fn(),
+    },
+}));
+
 describe('createTodo', () => {
+    let mockKafkaProducer: KafkaProducer;
+    let mockKafka: Kafka;
 
     beforeEach(() => {
-        // Mock the MongoClient
         jest.clearAllMocks();
+
+        // Mock Kafka instance
+        mockKafka = new Kafka({ clientId: 'test-client', brokers: ['localhost:9092'] });
+
+        // Mock KafkaProducer instance
+        mockKafkaProducer = new KafkaProducer(mockKafka) as jest.Mocked<KafkaProducer>;
+
+        // Mock the DI container to return the mocked KafkaProducer
+        (container.get as jest.Mock).mockImplementation((dependency) => {
+            if (dependency === 'KafkaProducer') {
+                return mockKafkaProducer;
+            }
+            throw new Error(`Dependency '${dependency}' not found`);
+        });
     });
 
     it('should create a new todo and send a Kafka message', async () => {
@@ -29,7 +54,7 @@ describe('createTodo', () => {
         expect(result).toHaveProperty('title', title);
 
         // Verify that sendMessage was called with the correct arguments
-        expect(sendMessage).toHaveBeenCalledWith('todo-events', {
+        expect(mockKafkaProducer.sendMessage).toHaveBeenCalledWith('todo-events', {
             action: 'create',
             data: result,
         });

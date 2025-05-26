@@ -1,22 +1,19 @@
-import { Todo } from '@domain/entities/todo';
-import { sendMessage } from '@infrastructure/kafka/kafkaProducer';
-import logger from '../../../logger';
+import { KafkaProducer } from '@infrastructure/kafka/kafkaProducer';
+import { container } from '@src/container'; // Assuming you're using a DI container
 import { ObjectId } from 'mongodb';
 
-export const createTodo = async (todoData: { title: string }): Promise<Todo> => {
-    if (!todoData.title) {
-        throw new Error('Title is required');
-    }
+export async function createTodo(data: { title: string }) {
+    const kafkaProducer = container.get<KafkaProducer>('KafkaProducer'); // Resolve KafkaProducer from DI container
 
-    // Generate a unique id for the todo
-    const id = new ObjectId().toString();
+    const todo = {
+        id: new ObjectId().toString(),
+        title: data.title,
+    };
 
-    // Create the todo object with the generated id
-    const todo = { id, title: todoData.title };
+    // Save the todo to the database (not shown here)
 
-    logger.info("Creating todo:", todo);
-
-    await sendMessage('todo-events', { action: 'create', data: todo });
+    // Send a message to Kafka
+    await kafkaProducer.sendMessage('todo-events', { action: 'create', data: todo });
 
     return todo;
-};
+}

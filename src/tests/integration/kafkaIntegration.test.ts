@@ -1,33 +1,38 @@
-import { connectProducer, sendMessage } from '@infrastructure/kafka/kafkaProducer';
-import { connectConsumer } from '@infrastructure/kafka/kafkaConsumer';
-import { connectToDatabase, getMongoClient, stopMemoryServer } from '@infrastructure/database/mongoClient';
+import { container } from '@src/container';
+import { KafkaProducer } from '@infrastructure/kafka/kafkaProducer';
+import { KafkaConsumer } from '@infrastructure/kafka/kafkaConsumer';
 import TodoRepository from '@infrastructure/repositories/todoRepository';
 import { Todo } from '@domain/entities/todo';
 import { ObjectId } from 'mongodb';
 
 describe('Kafka Integration Test', () => {
+    let kafkaProducer: KafkaProducer;
+    let kafkaConsumer: KafkaConsumer;
     let todoRepository: TodoRepository;
 
     beforeAll(async () => {
-        // Connect to the in-memory MongoDB
-        await connectToDatabase();
-        const client = getMongoClient();
-        todoRepository = new TodoRepository(client, 'todo-api');
+        // Resolve dependencies from the DI container
+        kafkaProducer = container.get<KafkaProducer>('KafkaProducer');
+        kafkaConsumer = container.get<KafkaConsumer>('KafkaConsumer');
+        todoRepository = container.get<TodoRepository>('TodoRepository');
 
         // Connect Kafka producer and consumer
-        await connectProducer();
-        await connectConsumer();
+        await kafkaProducer.connect();
+        await kafkaConsumer.connect();
+        await kafkaConsumer.subscribe('todo-events');
+        await kafkaConsumer.run();
     });
 
     afterAll(async () => {
-        // Stop the in-memory MongoDB server
-        await stopMemoryServer();
+        // Disconnect Kafka producer and consumer
+        await kafkaProducer.disconnect();
+        await kafkaConsumer.disconnect();
     });
 
     it('should process "create" messages and insert a todo into MongoDB', async () => {
         const todoData = new Todo(new ObjectId().toString(), 'Integration Test Todo');
         // Send a "create" message to Kafka
-        await sendMessage('todo-events', { action: 'create', data: todoData });
+        await kafkaProducer.sendMessage('todo-events', { action: 'create', data: todoData });
 
         // Wait for the consumer to process the message
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -41,11 +46,11 @@ describe('Kafka Integration Test', () => {
     it('should process "update" messages and update a todo in MongoDB', async () => {
         // Insert a todo directly into MongoDB
         const todo = new Todo(new ObjectId().toString(), 'Old Title');
-        const insertedTodo = await todoRepository.addTodo(todo);
+        await todoRepository.addTodo(todo);
 
         // Send an "update" message to Kafka
-        const updatedData = { id: insertedTodo.id, title: 'Updated Title' };
-        await sendMessage('todo-events', { action: 'update', data: updatedData });
+        const updatedData = { id: todo.id, title: 'Updated Title' };
+        await kafkaProducer.sendMessage('todo-events', { action: 'update', data: updatedData });
 
         // Wait for the consumer to process the message
         await new Promise((resolve) => setTimeout(resolve, 1000));
@@ -59,10 +64,10 @@ describe('Kafka Integration Test', () => {
     it('should process "delete" messages and remove a todo from MongoDB', async () => {
         // Insert a todo directly into MongoDB
         const todo = new Todo(new ObjectId().toString(), 'Todo to Delete');
-        const insertedTodo = await todoRepository.addTodo(todo);
+        await todoRepository.addTodo(todo);
 
         // Send a "delete" message to Kafka
-        await sendMessage('todo-events', { action: 'delete', data: { id: insertedTodo.id } });
+        await kafkaProducer.sendMessage('todo-events', { action: 'delete', data: { id: todo.id } });
 
         // Wait for the consumer to process the message
         await new Promise((resolve) => setTimeout(resolve, 1000));
