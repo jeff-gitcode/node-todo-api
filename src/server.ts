@@ -28,10 +28,22 @@ const startServer = async () => {
         logger.info('Database connected successfully.');
 
         // Connect Kafka producer and consumer
-        await connectProducer();
-        logger.info('Kafka producer connected.');
-        await connectConsumer();
-        logger.info('Kafka consumer connected.');
+        try {
+            // Try connecting to Kafka
+            await connectProducer();
+            console.log('Kafka producer connected successfully.');
+            
+            try {
+                await connectConsumer();
+                console.log('Kafka consumer connected successfully.');
+            } catch (kafkaConsumerError) {
+                console.warn('Failed to connect Kafka consumer:');
+                console.log('Continuing without Kafka consumer functionality...');
+            }
+        } catch (kafkaError) {
+            console.warn('Kafka connection failed:');
+            console.log('Continuing without Kafka messaging...');
+        }
 
         // Register routes only after the database connection is established
         app.use('/', todoRoutes());
