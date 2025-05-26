@@ -6,6 +6,7 @@ import todoRoutes from '@presentation/routes/todoRoutes';
 import { config } from '@config/index';
 import { connectConsumer } from '@infrastructure/kafka/kafkaConsumer';
 import { connectProducer } from '@infrastructure/kafka/kafkaProducer';
+import { registerInfrastructureService } from './infrastructure/di';
 
 const app = express();
 const PORT = config.port;
@@ -24,26 +25,15 @@ app.use(express.json());
 const startServer = async () => {
     try {
         // Connect to the database
-        await connectToDatabase();
-        logger.info('Database connected successfully.');
-
+        // await connectToDatabase();
+        // logger.info('Database connected successfully.');
+        await registerInfrastructureService();
+        logger.info('Dependencies bootstrapped successfully.');
         // Connect Kafka producer and consumer
-        try {
-            // Try connecting to Kafka
-            await connectProducer();
-            console.log('Kafka producer connected successfully.');
-            
-            try {
-                await connectConsumer();
-                console.log('Kafka consumer connected successfully.');
-            } catch (kafkaConsumerError) {
-                console.warn('Failed to connect Kafka consumer:');
-                console.log('Continuing without Kafka consumer functionality...');
-            }
-        } catch (kafkaError) {
-            console.warn('Kafka connection failed:');
-            console.log('Continuing without Kafka messaging...');
-        }
+        await connectProducer();
+        logger.info('Kafka producer connected.');
+        await connectConsumer();
+        logger.info('Kafka consumer connected.');
 
         // Register routes only after the database connection is established
         app.use('/', todoRoutes());

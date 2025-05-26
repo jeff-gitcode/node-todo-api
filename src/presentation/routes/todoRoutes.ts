@@ -2,12 +2,17 @@ import { Router } from 'express';
 import { TodoController } from '@presentation/controllers/todoController';
 import { getMongoClient } from '@infrastructure/database/mongoClient';
 import TodoRepository from '@infrastructure/repositories/todoRepository';
+import { container } from '@src/container';
+import { MongoClient } from 'mongodb';
 
 const router = Router();
 
 const todoRoutes = () => {
-    const client = getMongoClient();
-    const todoRepository = new TodoRepository(client, 'todo-api');
+    // const client = getMongoClient();
+    // const todoRepository = new TodoRepository(client, 'todo-api');
+    const client = container.get<MongoClient>('MongoClient');
+    const todoRepository = container.get<TodoRepository>('TodoRepository');
+
     const todoController = new TodoController(todoRepository);
 
     router.post('/todos', todoController.create.bind(todoController));

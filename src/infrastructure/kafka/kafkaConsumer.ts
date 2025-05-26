@@ -2,6 +2,8 @@ import { Kafka } from 'kafkajs';
 import TodoRepository from '@infrastructure/repositories/todoRepository';
 import { getMongoClient } from '@infrastructure/database/mongoClient';
 import { kafkaConsumerMiddleware } from './middleware';
+import { container } from '@src/container';
+import { MongoClient } from 'mongodb';
 
 const kafka = new Kafka({
     clientId: 'todo-api',
@@ -14,8 +16,10 @@ export const connectConsumer = async () => {
     await consumer.connect();
     await consumer.subscribe({ topic: 'todo-events', fromBeginning: true });
 
-    const client = getMongoClient();
-    const todoRepository = new TodoRepository(client, 'todo-api');
+    // const client = getMongoClient();
+    // const todoRepository = new TodoRepository(client, 'todo-api');
+    const client = container.get<MongoClient>('MongoClient');
+    const todoRepository = container.get<TodoRepository>('TodoRepository');
 
     await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
