@@ -1,14 +1,25 @@
+import { container } from '@src/container'; // Import your DI container
+import { MongoClient, ObjectId } from 'mongodb';
 import { connectConsumer } from '@infrastructure/kafka/kafkaConsumer';
 import { getMongoClient } from '@infrastructure/database/mongoClient';
-import { ObjectId } from 'mongodb';
+import TodoRepository from '@infrastructure/repositories/todoRepository';
 const { consumer } = require('kafkajs').Kafka();
+
+jest.mock('@src/container', () => ({
+    container: {
+        get: jest.fn(),
+    },
+}));
+
+jest.mock('@infrastructure/database/mongoClient', () => ({
+    getMongoClient: jest.fn(),
+}));
 
 // Mock repositories
 const mockAddTodo = jest.fn();
 const mockUpdateTodo = jest.fn();
 const mockDeleteTodo = jest.fn();
 
-// Mock TodoRepository before importing modules
 jest.mock('@infrastructure/repositories/todoRepository', () => {
     return jest.fn().mockImplementation(() => ({
         addTodo: mockAddTodo,
@@ -16,10 +27,6 @@ jest.mock('@infrastructure/repositories/todoRepository', () => {
         deleteTodo: mockDeleteTodo
     }));
 });
-
-jest.mock('@infrastructure/database/mongoClient', () => ({
-    getMongoClient: jest.fn()
-}));
 
 // Store message handlers for different test scenarios
 let messageHandler: any = null;
@@ -45,10 +52,29 @@ jest.mock('kafkajs', () => {
 });
 
 describe('Kafka Consumer Tests', () => {
+    let mockMongoClient: MongoClient;
+    let mockTodoRepository: TodoRepository;
+
     beforeEach(() => {
         // Clear mocks before each test
         jest.clearAllMocks();
         messageHandler = null;
+
+        // Mock MongoClient and TodoRepository
+        mockMongoClient = {} as MongoClient;
+        mockTodoRepository = {
+            addTodo: jest.fn(),
+            updateTodo: jest.fn(),
+            deleteTodo: jest.fn(),
+            fetchTodos: jest.fn(),
+        } as unknown as TodoRepository;
+
+        // Mock DI container to return mocked dependencies
+        (container.get as jest.Mock).mockImplementation((dependency) => {
+            if (dependency === 'MongoClient') return mockMongoClient;
+            if (dependency === 'TodoRepository') return mockTodoRepository;
+            throw new Error(`Dependency '${dependency}' not found`);
+        });
 
         // Set up default mock client
         const mockClient = {};
@@ -84,8 +110,8 @@ describe('Kafka Consumer Tests', () => {
         });
 
         // Verify addTodo was called with the todo
-        expect(mockAddTodo).toHaveBeenCalledTimes(1);
-        expect(mockAddTodo).toHaveBeenCalledWith(todo);
+        expect(mockTodoRepository.addTodo).toHaveBeenCalledTimes(1);
+        expect(mockTodoRepository.addTodo).toHaveBeenCalledWith(todo);
     });
 
     it('should process "update" action and call updateTodo', async () => {
@@ -106,8 +132,8 @@ describe('Kafka Consumer Tests', () => {
         });
 
         // Verify updateTodo was called with the id and title
-        expect(mockUpdateTodo).toHaveBeenCalledTimes(1);
-        expect(mockUpdateTodo).toHaveBeenCalledWith(updateData.id, updateData.title);
+        expect(mockTodoRepository.updateTodo).toHaveBeenCalledTimes(1);
+        expect(mockTodoRepository.updateTodo).toHaveBeenCalledWith(updateData.id, updateData.title);
     });
 
     it('should process "delete" action and call deleteTodo', async () => {
@@ -128,8 +154,8 @@ describe('Kafka Consumer Tests', () => {
         });
 
         // Verify deleteTodo was called with the id
-        expect(mockDeleteTodo).toHaveBeenCalledTimes(1);
-        expect(mockDeleteTodo).toHaveBeenCalledWith(deleteData.id);
+        expect(mockTodoRepository.deleteTodo).toHaveBeenCalledTimes(1);
+        expect(mockTodoRepository.deleteTodo).toHaveBeenCalledWith(deleteData.id);
     });
 
     it('should handle malformed message without throwing error', async () => {

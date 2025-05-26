@@ -3,6 +3,7 @@ import { app } from '@src/server'; // Adjust the import based on your server fil
 import { connectToDatabase, stopMemoryServer } from '@infrastructure/database/mongoClient';
 import TodoRepository from '@infrastructure/repositories/todoRepository';
 import { ObjectId } from 'mongodb';
+import { container } from '@src/container';
 
 jest.mock('kafkajs', () => {
     const mockProducer = {
@@ -31,7 +32,8 @@ describe('Todo API Integration Tests', () => {
 
     beforeAll(async () => {
         const dbConnection = await connectToDatabase();
-        todoRepository = new TodoRepository(dbConnection, 'todo-api');
+        // Resolve the real TodoRepository from the DI container
+        todoRepository = container.get<TodoRepository>('TodoRepository');
     });
 
     afterAll(async () => {
@@ -59,8 +61,15 @@ describe('Todo API Integration Tests', () => {
         await todoRepository.addTodo({ id: new ObjectId().toString(), title: 'First Todo' });
         await todoRepository.addTodo({ id: new ObjectId().toString(), title: 'Second Todo' });
 
+        // Verify the todos were inserted
+        const todos = await todoRepository.fetchTodos();
+        console.log('Seeded todos:', todos); // Debugging log
+
+        // Fetch todos
         const response = await request(app).get('/todos').expect(200);
 
+        // Verify the response
+        console.log('Fetched todos:', response.body); // Debugging log
         expect(response.body).toHaveLength(2);
         expect(response.body[0]).toHaveProperty('_id');
         expect(response.body[0].title).toBe('First Todo');
