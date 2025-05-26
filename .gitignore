@@ -43,8 +43,7 @@ build/
 Thumbs.db
 
 # Test output
-*.test.js
-*.test.ts
+/coverage
 
 kafka_data/
 mongodb_data/
