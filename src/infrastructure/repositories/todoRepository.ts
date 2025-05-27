@@ -47,6 +47,10 @@ class TodoRepository {
         }
         return { id: result.value._id, title: result.value.title };
     }
+
+    async clearTodos(): Promise<void> {
+        await this.db.collection('todos').deleteMany({});
+    }
 }
 
 export default TodoRepository;

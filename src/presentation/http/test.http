@@ -1,5 +1,5 @@
-@host = http://localhost:3000
-@todoId = 68345a2624a7a84eebacfae4
+@host = http://localhost:4000
+@todoId = 683471df50626d9c4476c60e
 
 ### create a todo
 POST {{host}}/todos

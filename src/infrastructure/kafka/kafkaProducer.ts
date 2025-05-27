@@ -1,23 +1,24 @@
-import { Kafka } from 'kafkajs';
-import { kafkaProducerMiddleware } from './middleware';
+import { Kafka, Producer } from 'kafkajs';
 
-const kafka = new Kafka({
-    clientId: 'todo-api',
-    brokers: ['localhost:9092'],
-});
+export class KafkaProducer {
+    private readonly producer: Producer;
 
-const producer = kafka.producer();
+    constructor(kafka: Kafka) {
+        this.producer = kafka.producer();
+    }
 
-export const connectProducer = async () => {
-    await producer.connect();
-};
+    async connect(): Promise<void> {
+        await this.producer.connect();
+    }
 
-// Wrapped sendMessage function with middleware
-export const sendMessage = async (topic: string, message: any) => {
-    // await kafkaProducerMiddleware(topic, message, async (topic: string, message: any) => {
-    await producer.send({
-        topic,
-        messages: [{ value: JSON.stringify(message) }],
-    });
-    // });
-};
+    async sendMessage(topic: string, message: any): Promise<void> {
+        await this.producer.send({
+            topic,
+            messages: [{ value: JSON.stringify(message) }],
+        });
+    }
+
+    async disconnect(): Promise<void> {
+        await this.producer.disconnect();
+    }
+}

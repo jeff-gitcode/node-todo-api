@@ -1,41 +1,53 @@
-import { Kafka } from 'kafkajs';
+import { Kafka, Consumer, EachMessagePayload } from 'kafkajs';
 import TodoRepository from '@infrastructure/repositories/todoRepository';
-import { getMongoClient } from '@infrastructure/database/mongoClient';
-import { kafkaConsumerMiddleware } from './middleware';
-import { container } from '@src/container';
-import { MongoClient } from 'mongodb';
 
-const kafka = new Kafka({
-    clientId: 'todo-api',
-    brokers: ['localhost:9092'],
-});
+export class KafkaConsumer {
+    private readonly consumer: Consumer;
+    private readonly todoRepository: TodoRepository;
 
-const consumer = kafka.consumer({ groupId: 'todo-group' });
+    constructor(kafka: Kafka, todoRepository: TodoRepository) {
+        this.consumer = kafka.consumer({ groupId: 'todo-group' });
+        this.todoRepository = todoRepository;
+    }
 
-export const connectConsumer = async () => {
-    await consumer.connect();
-    await consumer.subscribe({ topic: 'todo-events', fromBeginning: true });
+    async connect(): Promise<void> {
+        await this.consumer.connect();
+    }
 
-    // const client = getMongoClient();
-    // const todoRepository = new TodoRepository(client, 'todo-api');
-    const client = container.get<MongoClient>('MongoClient');
-    const todoRepository = container.get<TodoRepository>('TodoRepository');
+    async subscribe(topic: string): Promise<void> {
+        await this.consumer.subscribe({ topic, fromBeginning: true });
+    }
 
-    await consumer.run({
-        eachMessage: async ({ topic, partition, message }) => {
-            const event = JSON.parse(message.value?.toString() || '{}');
-            const { action, data } = event;
+    async run(): Promise<void> {
+        await this.consumer.run({
+            eachMessage: async ({ topic, partition, message }: EachMessagePayload) => {
+                try {
+                    // Parse the message value
+                    const event = JSON.parse(message.value?.toString() || '{}');
+                    const { action, data } = event;
 
-            // await kafkaConsumerMiddleware(event, async (event: any) => {
+                    // Handle different actions
+                    if (action === 'create') {
+                        await this.todoRepository.addTodo(data);
+                    } else if (action === 'update') {
+                        await this.todoRepository.updateTodo(data.id, data.title);
+                    } else if (action === 'delete') {
+                        await this.todoRepository.deleteTodo(data.id);
+                    }
+                } catch (error: unknown) {
+                    // Log the error but don't crash the consumer
+                    const errorMessage = error instanceof Error ? error.message : String(error);
+                    console.error(`Error processing message: ${errorMessage}`, {
+                        topic,
+                        partition,
+                        message: message.value?.toString(),
+                    });
+                }
+            },
+        });
+    }
 
-            if (action === 'create') {
-                await todoRepository.addTodo(data);
-            } else if (action === 'update') {
-                await todoRepository.updateTodo(data.id, data.title);
-            } else if (action === 'delete') {
-                await todoRepository.deleteTodo(data.id);
-            }
-            // });
-        }
-    });
-};
+    async disconnect(): Promise<void> {
+        await this.consumer.disconnect();
+    }
+}
