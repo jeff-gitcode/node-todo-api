@@ -7,7 +7,7 @@ import TodoRepository from './repositories/todoRepository';
 import { KafkaConsumer } from './kafka/kafkaConsumer';
 import { KafkaProducer } from './kafka/kafkaProducer';
 
-export async function registerInfrastructureService() {
+export async function registerInfrastructureService(): Promise<typeof container> {
   // Connect to MongoDB
   await connectToDatabase();
 
@@ -29,4 +29,5 @@ export async function registerInfrastructureService() {
   container.register('KafkaProducer', kafkaProducer);
   container.register('KafkaConsumer', kafkaConsumer);
 
+  return container;
 }

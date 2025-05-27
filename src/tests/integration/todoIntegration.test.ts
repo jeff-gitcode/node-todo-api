@@ -112,9 +112,14 @@ describe('Todo API Integration Tests', () => {
         // Delete the todo
         await request(app).delete(`/todos/${todoId}`).expect(204);
 
-        // Verify the todo is deleted
-        const fetchResponse = await request(app).get('/todos').expect(200);
-        expect(fetchResponse.body).toHaveLength(0);
+        // Verify the specific todo is deleted
+        const fetchResponse = await request(app).get(`/todos/${todoId}`).expect(404);
+        // Or check all todos don't include this one
+        const allTodos = await request(app).get('/todos').expect(200);
+        const deletedTodo = allTodos.body.find((todo: { id?: string; _id?: string }) =>
+            todo.id === todoId || todo._id === todoId
+        );
+        expect(deletedTodo).toBeUndefined();
     });
 
     it('should return 204 for deleting a non-existent todo', async () => {

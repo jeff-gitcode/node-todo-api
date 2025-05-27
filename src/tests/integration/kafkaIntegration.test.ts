@@ -4,6 +4,50 @@ import { KafkaConsumer } from '@infrastructure/kafka/kafkaConsumer';
 import TodoRepository from '@infrastructure/repositories/todoRepository';
 import { Todo } from '@domain/entities/todo';
 import { ObjectId } from 'mongodb';
+import { registerInfrastructureService } from '@src/infrastructure/di';
+
+// Mock the Kafka module and related dependencies
+jest.mock('kafkajs', () => {
+    // Create mock implementations for producer and consumer
+    const mockProducer = {
+        connect: jest.fn().mockResolvedValue(undefined),
+        send: jest.fn().mockImplementation(async ({ topic, messages }) => {
+            // When a message is sent to the producer, 
+            // directly invoke the message handler to simulate Kafka behavior
+            if (mockMessageHandler && topic === 'todo-events') {
+                for (const message of messages) {
+                    await mockMessageHandler({
+                        topic,
+                        partition: 0,
+                        message: { value: message.value },
+                    });
+                }
+            }
+            return { success: true };
+        }),
+        disconnect: jest.fn().mockResolvedValue(undefined),
+    };
+
+    const mockConsumer = {
+        connect: jest.fn().mockResolvedValue(undefined),
+        subscribe: jest.fn().mockResolvedValue(undefined),
+        run: jest.fn().mockImplementation(async ({ eachMessage }) => {
+            // Store the message handler to be called when producer sends a message
+            mockMessageHandler = eachMessage;
+        }),
+        disconnect: jest.fn().mockResolvedValue(undefined),
+    };
+
+    return {
+        Kafka: jest.fn().mockImplementation(() => ({
+            producer: jest.fn(() => mockProducer),
+            consumer: jest.fn(() => mockConsumer),
+        })),
+    };
+});
+
+// Global variable to store the message handler
+let mockMessageHandler: any = null;
 
 describe('Kafka Integration Test', () => {
     let kafkaProducer: KafkaProducer;
@@ -11,6 +55,9 @@ describe('Kafka Integration Test', () => {
     let todoRepository: TodoRepository;
 
     beforeAll(async () => {
+        // Initialize the DI container
+        const container = await registerInfrastructureService();
+
         // Resolve dependencies from the DI container
         kafkaProducer = container.get<KafkaProducer>('KafkaProducer');
         kafkaConsumer = container.get<KafkaConsumer>('KafkaConsumer');
@@ -27,6 +74,11 @@ describe('Kafka Integration Test', () => {
         // Disconnect Kafka producer and consumer
         await kafkaProducer.disconnect();
         await kafkaConsumer.disconnect();
+    });
+
+    afterEach(async () => {
+        // clear the todos collection after each test
+        await todoRepository.clearTodos();
     });
 
     it('should process "create" messages and insert a todo into MongoDB', async () => {

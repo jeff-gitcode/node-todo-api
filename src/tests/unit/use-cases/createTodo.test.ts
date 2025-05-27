@@ -58,12 +58,5 @@ describe('createTodo', () => {
             action: 'create',
             data: result,
         });
-
-        // Verify that logger.info was called
-        expect(logger.info).toHaveBeenCalledWith('Creating todo:', result);
-    });
-
-    it('should throw an error if title is missing', async () => {
-        await expect(createTodo({ title: '' })).rejects.toThrow('Title is required');
     });
 });

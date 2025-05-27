@@ -1,6 +1,3 @@
-import { container } from '@src/container'; // Import your DI container
-import { MongoClient, ObjectId } from 'mongodb';
-import { getMongoClient } from '@infrastructure/database/mongoClient';
 import TodoRepository from '@infrastructure/repositories/todoRepository';
 import { KafkaConsumer } from '@infrastructure/kafka/kafkaConsumer';
 import { Kafka } from 'kafkajs';
@@ -38,7 +35,7 @@ describe('KafkaConsumer', () => {
     let kafkaConsumer: KafkaConsumer;
     let mockTodoRepository: jest.Mocked<TodoRepository>;
     let mockKafka: Kafka;
-    let mockConsumer: any;
+    let mockConsumer: any; // This will hold the mocked consumer instance
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -50,9 +47,18 @@ describe('KafkaConsumer', () => {
             deleteTodo: jest.fn(),
         } as unknown as jest.Mocked<TodoRepository>;
 
-        // Mock Kafka and its consumer
-        mockKafka = new Kafka({ clientId: 'test-client', brokers: ['localhost:9092'] });
-        mockConsumer = mockKafka.consumer({ groupId: 'test-group' });
+        // Mock Kafka consumer with connect method
+        mockConsumer = {
+            connect: jest.fn(),
+            subscribe: jest.fn(),
+            run: jest.fn(),
+            disconnect: jest.fn(),
+        };
+
+        // Mock Kafka instance
+        mockKafka = {
+            consumer: jest.fn().mockReturnValue(mockConsumer),
+        } as unknown as Kafka;
 
         // Create an instance of KafkaConsumer with mocked dependencies
         kafkaConsumer = new KafkaConsumer(mockKafka, mockTodoRepository);
@@ -64,6 +70,7 @@ describe('KafkaConsumer', () => {
         // Verify that the connect method was called
         expect(mockConsumer.connect).toHaveBeenCalledTimes(1);
     });
+    
 
     it('should subscribe to a topic', async () => {
         const topic = 'todo-events';

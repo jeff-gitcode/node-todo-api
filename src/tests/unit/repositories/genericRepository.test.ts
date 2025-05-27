@@ -20,9 +20,15 @@ describe('GenericRepository', () => {
     });
 
     it('should add an entity', async () => {
-        const entity = { id: '1', name: 'Test Entity' };
+        const validObjectId = new ObjectId().toString();
+        const entity = { id: validObjectId, name: 'Test Entity' };
         const mockInsertOne = mockClient.db().collection().insertOne;
-        mockInsertOne.mockResolvedValue({ insertedId: entity.id });
+
+        // Mock a successful insertion
+        mockInsertOne.mockResolvedValue({
+            acknowledged: true,
+            insertedId: new ObjectId(entity.id),
+        });
 
         const result = await repository.add(entity);
 
@@ -34,18 +40,27 @@ describe('GenericRepository', () => {
     });
 
     it('should fetch all entities', async () => {
-        const entities = [{ id: '1', name: 'Entity 1' }, { id: '2', name: 'Entity 2' }];
+        const entities = [
+            { _id: new ObjectId(), name: 'Entity 1' },
+            { _id: new ObjectId(), name: 'Entity 2' }
+        ];
         const mockToArray = mockClient.db().collection().find().toArray;
         mockToArray.mockResolvedValue(entities);
 
         const result = await repository.fetchAll();
 
         expect(mockToArray).toHaveBeenCalled();
-        expect(result).toEqual(entities);
+        // The repository should convert _id to id
+        expect(result.length).toBe(2);
+        expect(result[0].id).toBeDefined();
+        expect(result[0].name).toBe('Entity 1');
+        expect(result[1].id).toBeDefined();
+        expect(result[1].name).toBe('Entity 2');
     });
 
     it('should delete an entity by id', async () => {
-        const id = '1';
+        // Use a valid 24-character hex string for the ObjectId
+        const id = '507f1f77bcf86cd799439011';
         const mockDeleteOne = mockClient.db().collection().deleteOne;
         mockDeleteOne.mockResolvedValue({ deletedCount: 1 });
 
@@ -55,7 +70,8 @@ describe('GenericRepository', () => {
     });
 
     it('should update an entity and return the updated entity', async () => {
-        const id = '1';
+        // Use a valid 24-character hex string for the ObjectId
+        const id = '507f1f77bcf86cd799439011';
         const updates = { name: 'Updated Entity' };
         const updatedEntity = { _id: new ObjectId(id), ...updates };
         const mockFindOneAndUpdate = mockClient.db().collection().findOneAndUpdate;
@@ -68,6 +84,8 @@ describe('GenericRepository', () => {
             { $set: updates },
             { returnDocument: 'after' }
         );
-        expect(result).toEqual({ id: id, ...updates });
+        console.log('result:', result);
+        expect(result.id).toBe(updatedEntity._id.toString());
+        expect(result.name).toBe(updates.name);
     });
 });
