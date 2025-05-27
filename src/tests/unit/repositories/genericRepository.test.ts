@@ -84,7 +84,7 @@ describe('GenericRepository', () => {
             { $set: updates },
             { returnDocument: 'after' }
         );
-        console.log('result:', result);
+
         expect(result.id).toBe(updatedEntity._id.toString());
         expect(result.name).toBe(updates.name);
     });

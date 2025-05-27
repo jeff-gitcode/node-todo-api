@@ -56,12 +56,12 @@ describe('Kafka Integration Test', () => {
 
     beforeAll(async () => {
         // Initialize the DI container
-        const container = await registerInfrastructureService();
+        const diContainer = await registerInfrastructureService();
 
         // Resolve dependencies from the DI container
-        kafkaProducer = container.get<KafkaProducer>('KafkaProducer');
-        kafkaConsumer = container.get<KafkaConsumer>('KafkaConsumer');
-        todoRepository = container.get<TodoRepository>('TodoRepository');
+        kafkaProducer = diContainer.get<KafkaProducer>('KafkaProducer');
+        kafkaConsumer = diContainer.get<KafkaConsumer>('KafkaConsumer');
+        todoRepository = diContainer.get<TodoRepository>('TodoRepository');
 
         // Connect Kafka producer and consumer
         await kafkaProducer.connect();

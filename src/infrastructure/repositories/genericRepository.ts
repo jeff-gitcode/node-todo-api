@@ -33,11 +33,11 @@ export class GenericRepository<T> {
     }
 
     async fetchAll(): Promise<T[]> {
-        var result = await this.collection.find().toArray();
-        return result.map((item) => ({
-            id: item._id.toString(),
-            ...item,
-        })) as T[];
+        const result = await this.collection.find().toArray();
+        return result.map((item) => {
+            const { _id, ...rest } = item;
+            return { id: _id.toString(), ...rest };
+        }) as T[];
     }
 
     async delete(id: string): Promise<void> {
