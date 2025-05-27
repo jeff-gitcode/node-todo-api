@@ -32,6 +32,11 @@ describe('Todo API Integration Tests', () => {
 
     beforeAll(async () => {
         const dbConnection = await connectToDatabase();
+
+        // Create an instance of TodoRepository and register it in the container
+        const todoRepositoryInstance = new TodoRepository(dbConnection, 'todo-api');
+        container.register('TodoRepository', todoRepositoryInstance);
+
         // Resolve the real TodoRepository from the DI container
         todoRepository = container.get<TodoRepository>('TodoRepository');
     });

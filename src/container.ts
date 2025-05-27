@@ -17,7 +17,10 @@ export const container = {
   },
 
   override<T>(name: string, dependency: T): void {
-    bind[name] = dependency; // For tests or force-replace
+    if (!bind[name]) {
+      throw new Error(`Cannot override non-existent dependency '${name}'`);
+    }
+    bind[name] = dependency; // Replace the existing dependency
   },
 
   clear(): void {

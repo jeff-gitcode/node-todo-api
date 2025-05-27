@@ -1,7 +1,7 @@
 import { Kafka, Producer } from 'kafkajs';
 
 export class KafkaProducer {
-    private producer: Producer;
+    private readonly producer: Producer;
 
     constructor(kafka: Kafka) {
         this.producer = kafka.producer();

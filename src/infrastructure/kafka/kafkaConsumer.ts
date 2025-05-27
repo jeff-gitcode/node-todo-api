@@ -2,8 +2,8 @@ import { Kafka, Consumer, EachMessagePayload } from 'kafkajs';
 import TodoRepository from '@infrastructure/repositories/todoRepository';
 
 export class KafkaConsumer {
-    private consumer: Consumer;
-    private todoRepository: TodoRepository;
+    private readonly consumer: Consumer;
+    private readonly todoRepository: TodoRepository;
 
     constructor(kafka: Kafka, todoRepository: TodoRepository) {
         this.consumer = kafka.consumer({ groupId: 'todo-group' });
